@@ -1,0 +1,31 @@
+{
+  "name": "@advinans/plack",
+  "version": "1.0.0",
+  "description": "Pino-based Stackdriver logger with pretty print utility",
+  "main": "index.js",
+  "bin": {
+    "plack": "./bin.js"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prepare": "tsc"
+  },
+  "author": "Victor Andrée <victor.andree@advinans.se>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/advinans/plack.git"
+  },
+  "dependencies": {
+    "@types/pino": "^4.7.0",
+    "chalk": "^2.3.0",
+    "fast-json-parse": "^1.0.3",
+    "flatstr": "^1.0.5",
+    "moment": "^2.20.1",
+    "pino": "^4.10.3",
+    "split2": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/split2": "^2.1.6",
+    "typescript": "^2.6.2"
+  }
+}
