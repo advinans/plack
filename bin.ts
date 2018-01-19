@@ -4,6 +4,7 @@ import split = require('split2');
 import Parse = require('fast-json-parse');
 import moment = require('moment');
 import chalk from 'chalk';
+import { LogEntryOperation } from './interfaces';
 
 const colors: any = {
   DEFAULT: chalk.white,
@@ -17,7 +18,12 @@ const colors: any = {
   EMERGENCY: chalk.bgRedBright.whiteBright.bold.underline,
 };
 
-const standardKeys = ['severity', 'time', 'message'];
+const standardKeys = [
+  'severity',
+  'time',
+  'message',
+  'logging.googleapis.com/operation',
+];
 
 function withSpaces(value: string, eol: string) {
   var lines = value.split(/\r?\n/);
@@ -64,6 +70,10 @@ function pretty() {
     let oline = formatTime(value.time) + ' ' + asColoredLevel(value.severity);
     oline += ' ';
 
+    if (value['logging.googleapis.com/operation']) {
+      oline += formatOperation(value['logging.googleapis.com/operation']);
+    }
+
     if (value.message) {
       oline += chalk.cyan(value.message);
     }
@@ -92,6 +102,32 @@ function asColoredLevel(severity: string) {
 
 function formatTime(time: number) {
   return `[${moment(time).format()}]`;
+}
+
+function formatOperation(op: LogEntryOperation): string {
+  const firstLast = [];
+  if (op.first) {
+    firstLast.push('first');
+  }
+  if (op.last) {
+    firstLast.push('last');
+  }
+  const firstLastStr = firstLast.join(',');
+  const id = [op.producer, op.id].filter(x => !!x).join(':');
+
+  let message = '';
+  if (id) {
+    message += chalk.green(id) + ' ';
+  }
+  if (firstLastStr) {
+    message += chalk.blue(firstLastStr);
+  }
+
+  if (message) {
+    return `(${message.trim()}) `;
+  }
+
+  return '';
 }
 
 process.stdin.pipe(pretty()).pipe(process.stdout);

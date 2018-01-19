@@ -27,3 +27,35 @@ log.info({
 });
 
 log.error(new Error('my little error'));
+
+log.info(
+  {
+    'logging.googleapis.com/operation': {
+      id: '9bf48d24-cd65-4699-9d2f-2c42bcc08437',
+      producer: 'main-producer',
+      first: true,
+    },
+  },
+  'start of operation',
+);
+
+log.info(
+  {
+    'logging.googleapis.com/operation': {
+      id: '9bf48d24-cd65-4699-9d2f-2c42bcc08437',
+      producer: 'main-producer',
+    },
+  },
+  'middle of operation',
+);
+
+log.info(
+  {
+    'logging.googleapis.com/operation': {
+      id: '9bf48d24-cd65-4699-9d2f-2c42bcc08437',
+      producer: 'main-producer',
+      last: true,
+    },
+  },
+  'end of operation',
+);
