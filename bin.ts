@@ -5,6 +5,7 @@ import Parse = require('fast-json-parse');
 import moment = require('moment');
 import chalk from 'chalk';
 import { LogEntryOperation } from './interfaces';
+import { LogEntryHttpRequest } from './constants';
 
 const colors: any = {
   DEFAULT: chalk.white,
@@ -23,6 +24,7 @@ const standardKeys = [
   'time',
   'message',
   'logging.googleapis.com/operation',
+  'httpRequest',
 ];
 
 function withSpaces(value: string, eol: string) {
@@ -80,6 +82,10 @@ function pretty() {
 
     oline += eol;
 
+    if (value.httpRequest) {
+      oline += formatHttpRequest(value.httpRequest, eol) + eol;
+    }
+
     if (value.type === 'Error') {
       oline += '    ' + withSpaces(value.stack, eol) + eol;
     } else {
@@ -113,7 +119,7 @@ function formatOperation(op: LogEntryOperation): string {
     firstLast.push('last');
   }
   const firstLastStr = firstLast.join(',');
-  const id = [op.producer, op.id].filter(x => !!x).join(':');
+  const id = [op.producer, op.id].filter(Boolean).join(':');
 
   let message = '';
   if (id) {
@@ -128,6 +134,35 @@ function formatOperation(op: LogEntryOperation): string {
   }
 
   return '';
+}
+
+function formatHttpRequest(req: LogEntryHttpRequest, eol: string): string {
+  const keys = ['requestMethod', 'requestUrl'];
+  const concatted = keys
+    .map(k => req[k])
+    .filter(Boolean)
+    .join(' ');
+
+  let color = chalk.green;
+  if (req.status) {
+    if (req.status >= 400 && req.status < 500) {
+      color = chalk.yellow;
+    } else if (req.status >= 500) {
+      color = chalk.red;
+    }
+  }
+  const rest = Object.keys(req)
+    .filter(k => keys.indexOf(k) === -1)
+    .map(k => {
+      let line = `  ${chalk.cyan(k)}: `;
+      line += withSpaces(JSON.stringify(req[k], null, 2), eol);
+      return line;
+    })
+    .join(eol);
+
+  let s = `    ${color(concatted)}${eol}`;
+  s += `    ${withSpaces(rest, eol)}${eol}`;
+  return s;
 }
 
 process.stdin.pipe(pretty()).pipe(process.stdout);
