@@ -37,11 +37,17 @@ function addLevel(this: any, name: string, lvl: number) {
   (this as any)._lscache[lvl] = flatstr(`{"severity":"${name.toUpperCase()}"`);
 }
 
-export function plack(): Logger {
+export function plack(options?: pino.LoggerOptions): Logger {
+  options = options || {};
+
   const instance = pino({
     // dont include hostname, pid et cetera
     base: {},
     messageKey: 'message',
+    serializers: {
+      err: pino.stdSerializers.err,
+    },
+    ...options,
   } as any);
 
   // dont include log version specifier

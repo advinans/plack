@@ -59,3 +59,5 @@ log.info(
   },
   'end of operation',
 );
+
+log.error({ err: new Error('This is an error') }, 'Message about error');
