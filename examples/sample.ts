@@ -3,6 +3,15 @@ import plack from '../';
 const log = plack();
 log.level = 'trace';
 
+class MyError extends Error {
+  constructor(message: string) {
+    super(message);
+
+    // correct class name in stack trace
+    this.name = this.constructor.name;
+  }
+}
+
 log.info('server up and listening on port 8080');
 log.info(
   { userAccountId: '6fba0a63-f544-4cd8-becd-08e30dc47831' },
@@ -26,7 +35,9 @@ log.info({
   field: 'value',
 });
 
-log.error(new Error('my little error'));
+log.error(new MyError('Custom error'));
+log.error(new Error('Standard error'));
+log.error({ err: new MyError('This is an error') }, 'Message about error');
 
 log.info(
   {
@@ -59,5 +70,3 @@ log.info(
   },
   'end of operation',
 );
-
-log.error({ err: new Error('This is an error') }, 'Message about error');

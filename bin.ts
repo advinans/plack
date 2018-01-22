@@ -22,9 +22,12 @@ const standardKeys = [
   'severity',
   'time',
   'message',
+  'err',
   'logging.googleapis.com/operation',
   'httpRequest',
 ];
+
+const errRegExp = /Error$/;
 
 function withSpaces(value: string, eol: string) {
   var lines = value.split(/\r?\n/);
@@ -85,10 +88,14 @@ function pretty() {
       oline += formatHttpRequest(value.httpRequest, eol) + eol;
     }
 
-    if (value.type === 'Error') {
+    if (value.type && errRegExp.test(value.type)) {
       oline += '    ' + withSpaces(value.stack, eol) + eol;
     } else {
       oline += valueFields(value, eol);
+    }
+
+    if (value.err && errRegExp.test(value.err.type)) {
+      oline += '    ' + withSpaces(value.err.stack, eol) + eol;
     }
 
     return oline;
