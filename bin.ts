@@ -4,8 +4,7 @@ import split = require('split2');
 import Parse = require('fast-json-parse');
 import moment = require('moment');
 import chalk from 'chalk';
-import { LogEntryOperation } from './interfaces';
-import { LogEntryHttpRequest } from './constants';
+import { LogEntryHttpRequest, LogEntryOperation } from './constants';
 
 const colors: any = {
   DEFAULT: chalk.white,
