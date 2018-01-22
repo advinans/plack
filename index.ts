@@ -6,7 +6,8 @@ import { LogEntry } from './constants';
 
 export interface LogFn {
   (msg: string, ...args: any[]): void;
-  (obj: LogEntry, msg?: string, ...args: any[]): void;
+  (obj: LogEntry, msg: string, ...args: any[]): void;
+  (objOrMsg: LogEntry | string): void;
 }
 
 export interface Logger extends BaseLogger {
