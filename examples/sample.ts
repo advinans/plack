@@ -70,3 +70,7 @@ log.info(
   },
   'end of operation',
 );
+
+// string index signature works
+const s: string = 'info';
+log[s]('information');

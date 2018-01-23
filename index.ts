@@ -1,4 +1,4 @@
-import { BaseLogger } from 'pino';
+import { BaseLogger as PinoLogger } from 'pino';
 import pino = require('pino');
 import flatstr = require('flatstr');
 export { LogEntry } from './constants';
@@ -10,7 +10,7 @@ export interface LogFn {
   (objOrMsg: LogEntry | string): void;
 }
 
-export interface Logger extends BaseLogger {
+export interface BaseLogger extends PinoLogger {
   emergency: LogFn;
   alert: LogFn;
   fatal: LogFn;
@@ -21,6 +21,8 @@ export interface Logger extends BaseLogger {
   debug: LogFn;
   trace: LogFn;
 }
+
+export type Logger = BaseLogger & { [key: string]: LogFn };
 
 const severity: any = {
   10: 'DEBUG',
