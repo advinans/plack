@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import plack from '../';
 
 const log = plack();
