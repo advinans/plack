@@ -22,6 +22,19 @@ export interface BaseLogger extends PinoLogger {
   trace: LogFn;
 }
 
+export interface LoggerOptions extends pino.LoggerOptions {
+  base?: object;
+  /**
+   * For error reporting: When logging an error, this is appended to the
+   * payload for identification in Stackdriver error reporting. It is not
+   * appended to regular log messages.
+   */
+  serviceContext?: {
+    service: string;
+    version: string;
+  };
+}
+
 export type Logger = BaseLogger & { [key: string]: LogFn };
 
 const severity: any = {
@@ -45,7 +58,16 @@ function asJson(this: any, obj: any, msg: string | undefined, num: number) {
   // to catch both null and undefined
   var hasObj = obj !== undefined && obj !== null;
   var objError = hasObj && obj instanceof Error;
-  msg = !msg && objError ? obj.message : msg || undefined;
+  var objErrAttr = hasObj && obj.err instanceof Error;
+  var err = undefined;
+  if (objError) {
+    err = obj;
+  } else if (objErrAttr) {
+    err = obj.err;
+  }
+  var msgIsStackTrace = !msg && (objError || objErrAttr);
+
+  msg = msgIsStackTrace ? err.stack : msg || undefined;
   var data = this._lscache[num] + this.time();
   if (msg !== undefined) {
     // JSON.stringify is safe here
@@ -57,8 +79,16 @@ function asJson(this: any, obj: any, msg: string | undefined, num: number) {
   var value;
   if (hasObj) {
     var notHasOwnProperty = obj.hasOwnProperty === undefined;
-    if (objError) {
-      data += ',"type":"Error","stack":' + this.stringify(obj.stack);
+    if (err) {
+      // CHANGE: Only print stack trace if it was not the message
+      data += ',"type":"' + err.constructor.name + '"';
+      if (!msgIsStackTrace) {
+        data += ',"stack":' + this.stringify(err.stack);
+      }
+
+      if (this.serviceContext && (msgIsStackTrace || obj.reportLocation)) {
+        data += ',"serviceContext":' + this.stringify(this.serviceContext);
+      }
     }
     for (var key in obj) {
       value = obj[key];
@@ -78,18 +108,23 @@ function asJson(this: any, obj: any, msg: string | undefined, num: number) {
   return data + this.end;
 }
 
-export function plack(options?: pino.LoggerOptions): Logger {
+export function plack(options?: LoggerOptions): Logger {
   options = options || {};
 
   const instance = pino({
     // dont include hostname, pid et cetera
-    base: {},
+    base: options.base || {},
     messageKey: 'message',
     serializers: {
-      err: pino.stdSerializers.err,
+      // err property is not serialized because it is special cased
+      err: () => undefined,
+      ...options.serializers,
     },
     ...options,
   } as any);
+
+  // For error reporting
+  (instance as any).serviceContext = options.serviceContext;
 
   // dont include log version specifier
   (instance as any).end = '}\n';

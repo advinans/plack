@@ -65,11 +65,7 @@ function pretty() {
 
   function mapLine(line: any) {
     const parsed = new Parse(line);
-    const value = parsed.value;
-
-    if (parsed.err) {
-      return line + eol;
-    }
+    let value = parsed.value;
 
     let oline = formatTime(value.time) + ' ' + asColoredLevel(value.severity);
     oline += ' ';
@@ -78,25 +74,25 @@ function pretty() {
       oline += formatOperation(value['logging.googleapis.com/operation']);
     }
 
-    if (value.message) {
+    const isErr = value.type && errRegExp.test(value.type);
+    if (value.message && (!isErr || value.stack)) {
       oline += chalk.cyan(value.message);
     }
 
     oline += eol;
 
+    if (isErr && (value.stack || value.message)) {
+      oline += '    ' + withSpaces(value.stack || value.message, eol) + eol;
+      oline += eol;
+      let { stack, type, ...rest } = value;
+      value = rest;
+    }
+
     if (value.httpRequest) {
       oline += formatHttpRequest(value.httpRequest, eol) + eol;
     }
 
-    if (value.type && errRegExp.test(value.type)) {
-      oline += '    ' + withSpaces(value.stack, eol) + eol;
-    } else {
-      oline += valueFields(value, eol);
-    }
-
-    if (value.err && errRegExp.test(value.err.type)) {
-      oline += '    ' + withSpaces(value.err.stack, eol) + eol;
-    }
+    oline += valueFields({ ...value }, eol);
 
     return oline;
   }

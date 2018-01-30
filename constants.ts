@@ -128,10 +128,63 @@ export interface LogEntrySourceLocation {
   function?: string | number;
 }
 
+/**
+ * Indicates a location in the source code of the service for which errors are
+ * reported. functionName must be provided by the application when reporting an
+ * error, unless the error report contains a message with a supported exception
+ * stack trace. All fields are optional for the later case.
+ */
+export interface SourceLocation {
+  /**
+   * The source code filename, which can include a truncated relative path, or
+   * a full path from a production machine.
+   * */
+  filePath?: string;
+
+  /** 1-based. 0 indicates that the line number is unknown. */
+  lineNumber?: number;
+
+  /**
+   * Human-readable name of a function or method. The value can include optional
+   * context like the class or package name. For example,
+   * my.package.MyClass.method in case of Java.
+   */
+  functionName?: string;
+}
+
+/**
+ * A description of the context in which an error occurred. This data should be
+ * provided by the application when reporting an error, unless the error report
+ * has been generated automatically from Google App Engine logs.
+ */
+export interface ErrorContext {
+  httpRequest?: HttpRequestContext;
+  user?: string;
+  reportLocation?: SourceLocation;
+
+  [key: string]: any;
+}
+
+/**
+ * Stackdriver error reporting http request context. This should only be
+ * used if logging an error stack trace.
+ */
+export type HttpRequestContext = Pick<
+  LogEntryHttpRequest,
+  'method' | 'url' | 'userAgent' | 'remoteIp'
+> & {
+  /** The referrer information that is provided with the request. */
+  referrer?: string;
+  /** The HTTP response status code for the request. */
+  responseStatusCode?: number;
+};
+
 export interface LogEntryBase {
   httpRequest?: LogEntryHttpRequest;
   'logging.googleapis.com/operation'?: LogEntryOperation;
   'logging.googleapis.com/sourceLocation'?: LogEntrySourceLocation;
+
+  context?: ErrorContext;
 
   [key: string]: any;
 }
