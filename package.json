@@ -17,7 +17,7 @@
     "url": "git+https://github.com/advinans/plack.git"
   },
   "dependencies": {
-    "@types/pino": "^4.7.0",
+    "@types/pino": "^4.7.1",
     "chalk": "^2.3.0",
     "fast-json-parse": "^1.0.3",
     "flatstr": "^1.0.5",
