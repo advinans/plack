@@ -39,6 +39,45 @@ function addLevel(this: any, name: string, lvl: number) {
   (this as any)._lscache[lvl] = flatstr(`{"severity":"${name.toUpperCase()}"`);
 }
 
+// Need to override this to change how errors are serialized
+// Copy-paste
+function asJson(this: any, obj: any, msg: string | undefined, num: number) {
+  // to catch both null and undefined
+  var hasObj = obj !== undefined && obj !== null;
+  var objError = hasObj && obj instanceof Error;
+  msg = !msg && objError ? obj.message : msg || undefined;
+  var data = this._lscache[num] + this.time();
+  if (msg !== undefined) {
+    // JSON.stringify is safe here
+    data += this.messageKeyString + JSON.stringify('' + msg);
+  }
+  // we need the child bindings added to the output first so that logged
+  // objects can take precedence when JSON.parse-ing the resulting log line
+  data = data + this.chindings;
+  var value;
+  if (hasObj) {
+    var notHasOwnProperty = obj.hasOwnProperty === undefined;
+    if (objError) {
+      data += ',"type":"Error","stack":' + this.stringify(obj.stack);
+    }
+    for (var key in obj) {
+      value = obj[key];
+      if (
+        (notHasOwnProperty || obj.hasOwnProperty(key)) &&
+        value !== undefined
+      ) {
+        value = this.stringify(
+          this.serializers[key] ? this.serializers[key](value) : value,
+        );
+        if (value !== undefined) {
+          data += ',"' + key + '":' + value;
+        }
+      }
+    }
+  }
+  return data + this.end;
+}
+
 export function plack(options?: pino.LoggerOptions): Logger {
   options = options || {};
 
@@ -68,6 +107,10 @@ export function plack(options?: pino.LoggerOptions): Logger {
 
   Object.defineProperty(instance, 'addLevel', {
     value: addLevel,
+  });
+
+  Object.defineProperty(instance, 'asJson', {
+    value: asJson,
   });
 
   instance.addLevel('notice', 35);
