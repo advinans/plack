@@ -67,6 +67,10 @@ function pretty() {
     const parsed = new Parse(line);
     let value = parsed.value;
 
+    if (parsed.err || !value.severity || !value.time) {
+      return line + eol;
+    }
+
     let oline = formatTime(value.time) + ' ' + asColoredLevel(value.severity);
     oline += ' ';
 
