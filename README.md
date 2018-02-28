@@ -10,6 +10,37 @@ Also included is a pretty printer for local development called `plack`. You can 
 
 ```shell
 $ node my-program.js | plack
+[2018-02-28T13:43:23+01:00] INFO server up and listening on port 8080
+[2018-02-28T13:43:23+01:00] INFO Updated user account
+    userAccountId: "6fba0a63-f544-4cd8-becd-08e30dc47831"
+[2018-02-28T13:43:23+01:00] INFO
+    GET http://example.com/some/info?color=red
+      requestSize: "3000"
+      status: 200
+      responseSize: "1000"
+      userAgent: "Mozilla/4.0 (compatible; MSIE 6.0; Windows 98; Q312461; .NET CLR 1.0.3705)"
+      remoteIp: "192.168.1.1"
+      referer: "http://example.com/refererr"
+      latency: "3.5s"
+
+    field: "value"
+[2018-02-28T13:43:23+01:00] ERROR
+    MyError: Custom error
+        at Object.<anonymous> (/Users/victor/code/advinans/@advinans--plack/examples/sample.ts:45:11)
+        at Module._compile (module.js:660:30)
+        at Object.Module._extensions..js (module.js:671:10)
+        at Module.load (module.js:573:32)
+        at tryModuleLoad (module.js:513:12)
+        at Function.Module._load (module.js:505:3)
+        at Function.Module.runMain (module.js:701:10)
+        at startup (bootstrap_node.js:194:16)
+        at bootstrap_node.js:618:3
+
+    serviceContext: {
+      "service": "plack-use",
+      "version": "1.0.1"
+    }
+    name: "MyError"
 ```
 
 ## Usage
@@ -43,9 +74,9 @@ log.error(
 );
 ```
 
-## What gets picked up?
+## What gets picked up
 
-The `fluentd` daemon set translates JSON payloads to StackDriver entries using a plugin called [fluentd-plugin-google-cloud][fluentd-plugin-google-cloud]. Which fields get picked up can be figured out from the source code for this plugin (https://github.com/GoogleCloudPlatform/fluent-plugin-google-cloud/blob/master/lib/fluent/plugin/out_google_cloud.rb#L115). `time` is stripped from the payload, but it seems like Stackdriver ignores any timestamp set.
+The `fluentd` daemon set translates JSON payloads to StackDriver entries using a plugin called [fluentd-plugin-google-cloud][fluentd-plugin-google-cloud]. Which fields get picked up can be figured out from the source code for this plugin ([github.com/GoogleCloudPlatform/fluent-plugin-google][fluentd-plugin-google-cloud-plugin]). `time` is stripped from the payload, but it seems like Stackdriver ignores any timestamp set.
 
 Here's some sample code illustrating sending rich log entries:
 
@@ -114,3 +145,4 @@ log.info(
 [logentry]: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry
 [pino]: https://github.com/pinojs/pino
 [fluentd-plugin-google-cloud]: https://github.com/GoogleCloudPlatform/fluent-plugin-google-cloud
+[fluentd-plugin-google-cloud-plugin]: https://github.com/GoogleCloudPlatform/fluent-plugin-google-cloud/blob/master/lib/fluent/plugin/out_google_cloud.rb#L115
