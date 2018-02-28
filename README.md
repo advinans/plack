@@ -17,10 +17,30 @@ $ node my-program.js | plack
 ```typescript
 import plack from '@advinans/plack';
 
-const log = plack();
+const log = plack({
+  // By adding this, Stackdriver error reporting is improved.
+  serviceContext: {
+    service: 'plack-example',
+    version: '1.0.0',
+  },
+});
+
 log.info('hello world');
 log.alert('red alert!');
+
+// The stack trace gets logged so that the error gets picked up by Stackdriver
+// error reporting. Configure the logger with a service context (see above)
+// to have correct source information -- services running in Kubernetes will
+// otherwise simply be `gke_instances`.
 log.error(new Error('an error'));
+
+// To provide additional context about an error that you wish to be reported
+// as an error in Stackdriver, either pass the error as `err` on the object,
+// or in place of message.
+log.error(
+  { context: { httpRequest: { method: 'GET', responseStatusCode: 500 } } },
+  new Error('another error'),
+);
 ```
 
 ## What gets picked up?

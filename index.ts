@@ -7,6 +7,7 @@ import { LogEntry } from './constants';
 export interface LogFn {
   (msg: string, ...args: any[]): void;
   (obj: LogEntry, msg: string, ...args: any[]): void;
+  (obj: LogEntry, err: Error): void;
   (objOrMsg: LogEntry | string): void;
 }
 
@@ -54,18 +55,26 @@ function addLevel(this: any, name: string, lvl: number) {
 
 // Need to override this to change how errors are serialized
 // Copy-paste
-function asJson(this: any, obj: any, msg: string | undefined, num: number) {
+function asJson(
+  this: any,
+  obj: any,
+  msg: string | undefined | Error,
+  num: number,
+) {
   // to catch both null and undefined
   var hasObj = obj !== undefined && obj !== null;
   var objError = hasObj && obj instanceof Error;
   var objErrAttr = hasObj && obj.err instanceof Error;
+  var msgErr = msg instanceof Error;
   var err = undefined;
   if (objError) {
     err = obj;
   } else if (objErrAttr) {
     err = obj.err;
+  } else if (msgErr) {
+    err = msg;
   }
-  var msgIsStackTrace = !msg && (objError || objErrAttr);
+  var msgIsStackTrace = msgErr || (!msg && (objError || objErrAttr));
 
   msg = msgIsStackTrace ? err.stack : msg || undefined;
   var data = this._lscache[num] + this.time();

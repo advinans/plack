@@ -64,6 +64,21 @@ log.error({
   },
 });
 
+// You can also pass the error as the second parameter to provide additional
+// context
+log.error(
+  {
+    context: {
+      httpRequest: {
+        method: 'GET',
+        responseStatusCode: 500,
+        url: 'http://example.com',
+      },
+    },
+  },
+  new Error('This is an error'),
+);
+
 log.info(
   {
     'logging.googleapis.com/operation': {
