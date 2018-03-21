@@ -1,6 +1,6 @@
 {
   "name": "@advinans/plack",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "private": false,
   "description": "Pino-based Stackdriver logger with pretty print utility",
   "main": "index.js",
