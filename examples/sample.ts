@@ -1,23 +1,8 @@
 import 'source-map-support/register';
 import plack from '../';
 
-const log = plack({
-  // This is good to set for good Stackdriver error reporting. When logging an
-  // error it will be added to the log entry. If not included, reported errors
-  // will be marked as just coming from `gke_instances` when running in
-  // Kubernetes
-  serviceContext: { service: 'plack-use', version: '1.0.1' },
-});
+const log = plack();
 log.level = 'trace';
-
-class MyError extends Error {
-  constructor(message: string) {
-    super(message);
-
-    // correct class name in stack trace
-    this.name = this.constructor.name;
-  }
-}
 
 log.info('server up and listening on port 8080');
 log.info(
@@ -41,43 +26,6 @@ log.info({
   },
   field: 'value',
 });
-
-log.error(new MyError('Custom error'));
-
-// This will be reported to Stackdriver Error logging because the message is
-// the stack trace.
-log.error(new Error('Standard error'));
-
-// This will not be reported because the message is not a stack trace.
-log.error(new Error('Standard error'), 'Message about error');
-
-// If you pass an `err` object, that will be special cased. This is how you
-// can pass additional context.
-log.error({
-  err: new MyError('This is an error'),
-  context: {
-    httpRequest: {
-      method: 'GET',
-      responseStatusCode: 500,
-      url: 'http://example.com',
-    },
-  },
-});
-
-// You can also pass the error as the second parameter to provide additional
-// context
-log.error(
-  {
-    context: {
-      httpRequest: {
-        method: 'GET',
-        responseStatusCode: 500,
-        url: 'http://example.com',
-      },
-    },
-  },
-  new Error('This is an error'),
-);
 
 log.info(
   {

@@ -1,7 +1,13 @@
 import { BaseLogger as PinoLogger } from 'pino';
 import pino = require('pino');
 import flatstr = require('flatstr');
-export { LogEntry } from './constants';
+export {
+  LogEntry,
+  ErrorContext,
+  LogEntryHttpRequest,
+  LogEntryOperation,
+  LogEntrySourceLocation,
+} from './constants';
 import { LogEntry } from './constants';
 
 export interface LogFn {
@@ -64,17 +70,14 @@ function asJson(
   // to catch both null and undefined
   var hasObj = obj !== undefined && obj !== null;
   var objError = hasObj && obj instanceof Error;
-  var objErrAttr = hasObj && obj.err instanceof Error;
   var msgErr = msg instanceof Error;
   var err = undefined;
   if (objError) {
     err = obj;
-  } else if (objErrAttr) {
-    err = obj.err;
   } else if (msgErr) {
     err = msg;
   }
-  var msgIsStackTrace = msgErr || (!msg && (objError || objErrAttr));
+  var msgIsStackTrace = msgErr || (!msg && objError);
 
   msg = msgIsStackTrace ? err.stack : msg || undefined;
   var data = this._lscache[num] + this.time();
@@ -98,16 +101,23 @@ function asJson(
       if (this.serviceContext && (msgIsStackTrace || obj.reportLocation)) {
         data += ',"serviceContext":' + this.stringify(this.serviceContext);
       }
+
+      if (!objError) {
+        const { name, ...rest } = err;
+        obj = { ...obj, ...rest };
+      }
     }
     for (var key in obj) {
+      if (objError && key === 'name') {
+        continue;
+      }
+
       value = obj[key];
       if (
         (notHasOwnProperty || obj.hasOwnProperty(key)) &&
         value !== undefined
       ) {
-        value = this.stringify(
-          this.serializers[key] ? this.serializers[key](value) : value,
-        );
+        value = this.stringify(value);
         if (value !== undefined) {
           data += ',"' + key + '":' + value;
         }

@@ -18,16 +18,16 @@
   },
   "dependencies": {
     "@types/pino": "^4.7.1",
-    "chalk": "^2.3.0",
+    "chalk": "^2.3.2",
     "fast-json-parse": "^1.0.3",
     "flatstr": "^1.0.5",
-    "moment": "^2.20.1",
-    "pino": "^4.10.3",
+    "moment": "^2.21.0",
+    "pino": "^4.14.0",
     "split2": "^2.2.0"
   },
   "devDependencies": {
     "@types/split2": "^2.1.6",
-    "source-map-support": "^0.5.3",
-    "typescript": "^2.6.2"
+    "source-map-support": "^0.5.4",
+    "typescript": "^2.7.2"
   }
 }
