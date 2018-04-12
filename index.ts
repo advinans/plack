@@ -18,18 +18,6 @@ export interface LogFn {
   (objOrMsg: LogEntry | string): void;
 }
 
-export interface BaseLogger extends PinoLogger {
-  emergency: LogFn;
-  alert: LogFn;
-  fatal: LogFn;
-  error: LogFn;
-  warn: LogFn;
-  notice: LogFn;
-  info: LogFn;
-  debug: LogFn;
-  trace: LogFn;
-}
-
 /**
  * Service identification, for error reporting.
  *
@@ -39,6 +27,19 @@ export interface BaseLogger extends PinoLogger {
 export interface ServiceContext {
   service: string;
   version: string;
+}
+
+export interface BaseLogger extends PinoLogger {
+  serviceContext: ServiceContext;
+  emergency: LogFn;
+  alert: LogFn;
+  fatal: LogFn;
+  error: LogFn;
+  warn: LogFn;
+  notice: LogFn;
+  info: LogFn;
+  debug: LogFn;
+  trace: LogFn;
 }
 
 export interface LoggerOptions extends pino.LoggerOptions {
@@ -147,7 +148,8 @@ export function plack(options?: LoggerOptions): Logger {
   } as any);
 
   // For error reporting
-  (instance as any).serviceContext = options.serviceContext;
+  (instance as any).serviceContext =
+    options.serviceContext || defaultServiceContext();
 
   // dont include log version specifier
   (instance as any).end = '}\n';
