@@ -9,6 +9,7 @@ export {
   LogEntrySourceLocation,
 } from './constants';
 import { LogEntry } from './constants';
+import path = require('path');
 
 export interface LogFn {
   (msg: string, ...args: any[]): void;
@@ -29,17 +30,20 @@ export interface BaseLogger extends PinoLogger {
   trace: LogFn;
 }
 
+/**
+ * Service identification, for error reporting.
+ *
+ * This is appended to error reports, and can be useful to identify the
+ * service on start-up and other contexts.
+ */
+export interface ServiceContext {
+  service: string;
+  version: string;
+}
+
 export interface LoggerOptions extends pino.LoggerOptions {
   base?: object;
-  /**
-   * For error reporting: When logging an error, this is appended to the
-   * payload for identification in Stackdriver error reporting. It is not
-   * appended to regular log messages.
-   */
-  serviceContext?: {
-    service: string;
-    version: string;
-  };
+  serviceContext?: ServiceContext;
 }
 
 export type Logger = BaseLogger & { [key: string]: LogFn };
@@ -171,6 +175,23 @@ export function plack(options?: LoggerOptions): Logger {
   instance.addLevel('alert', 70);
   instance.addLevel('emergency', 80);
   return (instance as any) as Logger;
+}
+
+export function defaultServiceContext(service?: string): ServiceContext {
+  if (!service) {
+    try {
+      const pkg = require(path.resolve(process.cwd(), 'package.json'));
+      service = path.basename(pkg.name);
+    } catch (err) {
+      err.message = `Cannot determine service context name: ${err.message}`;
+      throw err;
+    }
+  }
+
+  return {
+    service,
+    version: process.env.VERSION || 'latest',
+  };
 }
 
 export default plack;
