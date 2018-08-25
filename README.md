@@ -72,6 +72,16 @@ log.error(
   { context: { httpRequest: { method: 'GET', responseStatusCode: 500 } } },
   new Error('another error'),
 );
+
+// You *should* create custom error classes to improve error grouping in
+// Stackdriver. You *must* set `this.name = this.constructor.name` in order
+// for the stack trace to include the name of your custom error class.
+class MyError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
 ```
 
 ## What gets picked up
