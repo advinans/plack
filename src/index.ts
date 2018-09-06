@@ -66,12 +66,6 @@ const severity: any = {
   80: 'EMERGENCY',
 };
 
-function addLevel(this: any, name: string, lvl: number) {
-  // all we do is fix the lscache
-  Object.getPrototypeOf(this).addLevel(name, lvl);
-  (this as any)._lscache[lvl] = flatstr(`{"severity":"${name.toUpperCase()}"`);
-}
-
 export function plack(): Logger;
 export function plack(options: LoggerOptions): Logger;
 export function plack(

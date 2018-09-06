@@ -24,11 +24,13 @@
     "flatstr": "^1.0.8",
     "moment": "^2.22.2",
     "pino": "^5.5.0",
-    "split2": "^3.0.0"
+    "split2": "^3.0.0",
+    "verror": "^1.10.0"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
     "@types/split2": "^2.1.6",
+    "@types/verror": "^1.10.3",
     "jest": "^23.5.0",
     "prettier": "^1.14.2",
     "source-map-support": "^0.5.9",

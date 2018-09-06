@@ -1,3 +1,5 @@
+import { fullStack } from 'verror';
+
 const {
   lsCacheSym,
   endSym,
@@ -27,7 +29,7 @@ export function asJson(
   }
   const msgIsStackTrace = msgErr || (!msg && objError);
 
-  msg = msgIsStackTrace ? err.stack : msg || undefined;
+  msg = msgIsStackTrace ? fullStack(err) : msg || undefined;
   const stringify = this[stringifySym];
   const stringifiers = this[stringifiersSym];
   const end = this[endSym];
@@ -45,9 +47,8 @@ export function asJson(
   if (hasObj === true) {
     var notHasOwnProperty = obj.hasOwnProperty === undefined;
     if (err) {
-      data += ',"type":"' + err.constructor.name + '"';
       if (!msgIsStackTrace) {
-        data += ',"stack":' + stringify(err.stack);
+        data += ',"stack":' + stringify(fullStack(err));
       }
 
       if (this.serviceContext && (msgIsStackTrace || obj.reportLocation)) {
@@ -64,8 +65,20 @@ export function asJson(
       obj = serializers[wildcardGsym](obj);
     }
     for (var key in obj) {
-      if (objError && (key === 'message' || key === 'name')) {
-        continue;
+      if (objError) {
+        // Filter uninteresting error properties, including bogus data from
+        // VErrors
+        switch (key) {
+          case 'message':
+          case 'name':
+          case 'jse_shortmsg':
+          case 'jse_cause':
+            continue;
+          case 'jse_info':
+            if (Object.keys(obj[key]).length === 0) {
+              continue;
+            }
+        }
       }
 
       value = obj[key];

@@ -1,5 +1,11 @@
 import plack from '.';
 import { Writable } from 'stream';
+import { VError } from 'verror';
+
+const PATH_REGEXP = /\((.+?)\)/g;
+
+const removePathFromStack = (stack: string) =>
+  stack.replace(PATH_REGEXP, '(path:line:col)');
 
 class DumpStream extends Writable {
   public data: string;
@@ -148,14 +154,32 @@ it('should log errors', () => {
 
   stream.end();
 
-  // We need to replace the paths from the stack traces.
-  const data = stream.data.replace(/\((.+?)\)/g, '(path:line:col)');
+  expect(removePathFromStack(stream.data)).toMatchInlineSnapshot(`
+"{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Error: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"extra\\":{\\"extra\\":\\"properties\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"context\\":{\\"httpRequest\\":{\\"method\\":\\"GET\\"}},\\"extra\\":{\\"extra\\":\\"properties\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Message about error\\",\\"stack\\":\\"MyError: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"extra\\":{\\"extra\\":\\"properties\\"}}
+"
+`);
+});
 
-  expect(data).toMatchInlineSnapshot(`
-"{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Error: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"Error\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"}}
-{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"MyError\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"extra\\":{\\"extra\\":\\"properties\\"}}
-{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"MyError\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"context\\":{\\"httpRequest\\":{\\"method\\":\\"GET\\"}},\\"extra\\":{\\"extra\\":\\"properties\\"}}
-{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Message about error\\",\\"type\\":\\"MyError\\",\\"stack\\":\\"MyError: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"extra\\":{\\"extra\\":\\"properties\\"}}
+it('should use VError', () => {
+  const stream = new DumpStream();
+  const log = plack({}, stream);
+
+  const cause = new RangeError("You can't give this to me");
+  const resolverError = new VError(
+    { cause, name: 'CustomName' },
+    'HTTP failure',
+  );
+
+  log.error(resolverError);
+  log.error(new VError({ info: { ip: '127.0.0.1' } }, 'Error message'));
+  stream.end();
+
+  expect(removePathFromStack(stream.data)).toMatchInlineSnapshot(`
+"{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"CustomName: HTTP failure: You can't give this to me\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\\\ncaused by: RangeError: You can't give this to me\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"serviceContext\\":{\\"service\\":\\"plack\\",\\"version\\":\\"latest\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"VError: Error message\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"serviceContext\\":{\\"service\\":\\"plack\\",\\"version\\":\\"latest\\"},\\"jse_info\\":{\\"ip\\":\\"127.0.0.1\\"}}
 "
 `);
 });
