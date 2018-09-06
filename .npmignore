@@ -1,6 +1,4 @@
-examples/
-*.js.map
-*.ts
-!*.d.ts
-declarations.d.ts
+src/
+.gitignore
+jest.config.js
 tsconfig.json

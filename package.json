@@ -3,13 +3,14 @@
   "version": "4.2.1",
   "private": false,
   "description": "Pino-based Stackdriver logger with pretty print utility",
-  "main": "index.js",
+  "main": "build/index.js",
   "bin": {
-    "plack": "./bin.js"
+    "plack": "build/bin.js"
   },
   "license": "MIT",
   "scripts": {
-    "prepare": "tsc"
+    "prepare": "tsc",
+    "test": "jest"
   },
   "author": "Victor Andrée <victor.andree@advinans.se>",
   "repository": {
@@ -26,8 +27,12 @@
     "split2": "^3.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^23.3.1",
     "@types/split2": "^2.1.6",
+    "jest": "^23.5.0",
+    "prettier": "^1.14.2",
     "source-map-support": "^0.5.9",
+    "ts-jest": "^23.1.4",
     "typescript": "^3.0.3"
   }
 }

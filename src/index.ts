@@ -10,6 +10,7 @@ export {
 } from './constants';
 import { LogEntry } from './constants';
 import path = require('path');
+import { Writable, Duplex, Transform } from 'stream';
 
 export interface LogFn {
   (msg: string, ...args: any[]): void;
@@ -33,6 +34,7 @@ export interface BaseLogger extends PinoLogger {
   serviceContext: ServiceContext;
   emergency: LogFn;
   alert: LogFn;
+  critical: LogFn;
   fatal: LogFn;
   error: LogFn;
   warn: LogFn;
@@ -132,7 +134,16 @@ function asJson(
   return data + this.end;
 }
 
-export function plack(options?: LoggerOptions): Logger {
+export function plack(): Logger;
+export function plack(options: LoggerOptions): Logger;
+export function plack(
+  options: LoggerOptions,
+  destination: Writable | Duplex | Transform | WritableStream,
+): Logger;
+export function plack(
+  options?: LoggerOptions,
+  destination?: Writable | Duplex | Transform | WritableStream,
+): Logger {
   options = options || {};
 
   const instance = pino({
@@ -145,7 +156,7 @@ export function plack(options?: LoggerOptions): Logger {
       ...options.serializers,
     },
     ...options,
-  } as any);
+  } as any, destination as any);
 
   // For error reporting
   (instance as any).serviceContext =
@@ -172,6 +183,8 @@ export function plack(options?: LoggerOptions): Logger {
   Object.defineProperty(instance, 'asJson', {
     value: asJson,
   });
+
+  instance.critical = instance.fatal;
 
   instance.addLevel('notice', 35);
   instance.addLevel('alert', 70);
