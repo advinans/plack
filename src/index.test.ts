@@ -183,3 +183,21 @@ it('should use VError', () => {
 "
 `);
 });
+
+it('should support operations', () => {
+  const stream = new DumpStream();
+  const log = plack({}, stream);
+
+  const op1 = log.operation({ id: '100', producer: 'se.advinans.test' });
+  op1.info({ first: true }, 'Start of operation');
+  op1.info('Middle of operation');
+  op1.info({ last: true }, 'End of operation');
+  stream.end();
+
+  expect(stream.data).toMatchInlineSnapshot(`
+"{\\"severity\\":\\"INFO\\",\\"time\\":1536248050595,\\"message\\":\\"Start of operation\\",\\"logging.googleapis.com/operation\\":{\\"id\\":\\"100\\",\\"producer\\":\\"se.advinans.test\\"},\\"logging.googleapis.com/operation\\":{\\"id\\":\\"100\\",\\"producer\\":\\"se.advinans.test\\",\\"first\\":true}}
+{\\"severity\\":\\"INFO\\",\\"time\\":1536248050595,\\"message\\":\\"Middle of operation\\",\\"logging.googleapis.com/operation\\":{\\"id\\":\\"100\\",\\"producer\\":\\"se.advinans.test\\"}}
+{\\"severity\\":\\"INFO\\",\\"time\\":1536248050595,\\"message\\":\\"End of operation\\",\\"logging.googleapis.com/operation\\":{\\"id\\":\\"100\\",\\"producer\\":\\"se.advinans.test\\"},\\"logging.googleapis.com/operation\\":{\\"id\\":\\"100\\",\\"producer\\":\\"se.advinans.test\\",\\"last\\":true}}
+"
+`);
+});

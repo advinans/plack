@@ -8,12 +8,18 @@ export {
   LogEntryOperation,
   LogEntrySourceLocation,
 } from './constants';
-import { LogEntry } from './constants';
+import { LogEntry, LOGGING_OPERATION, LogEntryOperation } from './constants';
 import path = require('path');
 import { Writable, Duplex, Transform } from 'stream';
 import { asJson } from './util';
 
-const { asJsonSym, endSym, lsCacheSym } = require('pino/lib/symbols');
+const {
+  asJsonSym,
+  endSym,
+  lsCacheSym,
+  serializersSym,
+  wildcardGsym,
+} = require('pino/lib/symbols');
 
 export interface LogFn {
   (msg: string, ...args: any[]): void;
@@ -45,6 +51,12 @@ export interface BaseLogger extends PinoLogger {
   info: LogFn;
   debug: LogFn;
   trace: LogFn;
+
+  /**
+   * Create a logger for a long-running operation by providing `id` and
+   * `producer`.
+   */
+  operation: (options: { id?: string; producer?: string }) => Logger;
 }
 
 export interface LoggerOptions extends pino.LoggerOptions {
@@ -114,6 +126,45 @@ export function plack(
   (instance as any)[asJsonSym] = asJson;
 
   instance.critical = instance.fatal;
+
+  (instance as any).operation = function(options: {
+    id?: string;
+    producer?: string;
+  }) {
+    const { id, producer } = options;
+
+    const serializer: pino.SerializerFn = value => {
+      if (value.first == null && value.last == null) {
+        return value;
+      }
+
+      const operation = { id, producer } as LogEntryOperation;
+      if (value.first) {
+        operation.first = value.first;
+        delete value.first;
+      }
+      if (value.last) {
+        operation.last = value.last;
+        delete value.last;
+      }
+      value[LOGGING_OPERATION] = operation;
+
+      return value;
+    };
+
+    // Create a child with these the operation as a child binding
+    const child = instance.child({
+      [LOGGING_OPERATION]: { id, producer },
+    });
+
+    // But if you pass `last` or `true`, then override the child binding
+    // with information about the operation being done. `chindings` are
+    // unconditionally applied to data, so we can't remove them...
+    (child as any)[serializersSym][wildcardGsym] = serializer;
+
+    return child;
+  };
+
   return (instance as any) as Logger;
 }
 

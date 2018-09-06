@@ -165,6 +165,9 @@ export interface ErrorContext {
   [key: string]: any;
 }
 
+export const LOGGING_OPERATION = 'logging.googleapis.com/operation';
+export const LOGGING_SOURCE_LOCATION = 'logging.googleapis.com/sourceLocation';
+
 /**
  * Stackdriver error reporting http request context. This should only be
  * used if logging an error stack trace.
@@ -181,11 +184,10 @@ export type HttpRequestContext = Pick<
 
 export interface LogEntryBase {
   httpRequest?: LogEntryHttpRequest;
-  'logging.googleapis.com/operation'?: LogEntryOperation;
-  'logging.googleapis.com/sourceLocation'?: LogEntrySourceLocation;
+  [LOGGING_OPERATION]?: LogEntryOperation;
+  [LOGGING_SOURCE_LOCATION]?: LogEntrySourceLocation;
 
   context?: ErrorContext;
-
   [key: string]: any;
 }
 
