@@ -114,3 +114,48 @@ it('should log simple messages', () => {
 "
 `);
 });
+
+class MyError extends Error {
+  public extra: any;
+
+  constructor(message: string, extra?: any) {
+    super(message);
+
+    // v8 stack traces use the `name` property of the error object, which
+    // is not set automatically
+    this.name = this.constructor.name;
+    this.extra = extra;
+  }
+}
+
+it('should log errors', () => {
+  const stream = new DumpStream();
+  const log = plack(
+    { serviceContext: { service: 'test', version: '1.0.0' } },
+    stream,
+  );
+
+  log.error(new Error('Standard error'));
+  log.error(new MyError('Custom error', { extra: 'properties' }));
+  log.error(
+    { context: { httpRequest: { method: 'GET' } } },
+    new MyError('Custom error', { extra: 'properties' }),
+  );
+  log.error(
+    new MyError('Standard error', { extra: 'properties' }),
+    'Message about error',
+  );
+
+  stream.end();
+
+  // We need to replace the paths from the stack traces.
+  const data = stream.data.replace(/\((.+?)\)/g, '(path:line:col)');
+
+  expect(data).toMatchInlineSnapshot(`
+"{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Error: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"Error\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"MyError\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"extra\\":{\\"extra\\":\\"properties\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"MyError: Custom error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"type\\":\\"MyError\\",\\"serviceContext\\":{\\"service\\":\\"test\\",\\"version\\":\\"1.0.0\\"},\\"context\\":{\\"httpRequest\\":{\\"method\\":\\"GET\\"}},\\"extra\\":{\\"extra\\":\\"properties\\"}}
+{\\"severity\\":\\"ERROR\\",\\"time\\":1536248050595,\\"message\\":\\"Message about error\\",\\"type\\":\\"MyError\\",\\"stack\\":\\"MyError: Standard error\\\\n    at Object.<anonymous>.it (path:line:col)\\\\n    at Object.asyncJestTest (path:line:col)\\\\n    at resolve (path:line:col)\\\\n    at new Promise (path:line:col)\\\\n    at mapper (path:line:col)\\\\n    at promise.then (path:line:col)\\\\n    at process._tickCallback (path:line:col)\\",\\"extra\\":{\\"extra\\":\\"properties\\"}}
+"
+`);
+});
