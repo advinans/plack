@@ -1,17 +1,11 @@
 import { BaseLogger as PinoLogger } from 'pino';
 import pino = require('pino');
-import flatstr = require('flatstr');
-export {
-  LogEntry,
-  ErrorContext,
-  LogEntryHttpRequest,
-  LogEntryOperation,
-  LogEntrySourceLocation,
-} from './constants';
 import { LogEntry, LOGGING_OPERATION, LogEntryOperation } from './constants';
 import path = require('path');
 import { Writable, Duplex, Transform } from 'stream';
 import { asJson } from './util';
+
+export *  from './constants';
 
 const {
   asJsonSym,
@@ -54,7 +48,8 @@ export interface BaseLogger extends PinoLogger {
 
   /**
    * Create a logger for a long-running operation by providing `id` and
-   * `producer`.
+   * `producer`. If you later log `last` or `first`, these get appended
+   * to the operation key.
    */
   operation: (options: { id?: string; producer?: string }) => Logger;
 }
