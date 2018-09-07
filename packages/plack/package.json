@@ -2,6 +2,9 @@
   "name": "@advinans/plack",
   "version": "5.0.0",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Pino-based Stackdriver logger with pretty print utility",
   "main": "build/index.js",
   "license": "MIT",
