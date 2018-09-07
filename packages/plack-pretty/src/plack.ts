@@ -4,7 +4,11 @@ import split = require('split2');
 import Parse = require('fast-json-parse');
 import moment = require('moment');
 import chalk from 'chalk';
-import { LogEntryHttpRequest, LogEntryOperation } from './constants';
+import {
+  LogEntryHttpRequest,
+  LogEntryOperation,
+  LOGGING_OPERATION,
+} from '@advinans/plack';
 
 const colors: any = {
   DEFAULT: chalk.white,
@@ -23,7 +27,7 @@ const standardKeys = [
   'time',
   'message',
   'err',
-  'logging.googleapis.com/operation',
+  LOGGING_OPERATION,
   'httpRequest',
 ];
 
@@ -74,23 +78,15 @@ function pretty() {
     let oline = formatTime(value.time) + ' ' + asColoredLevel(value.severity);
     oline += ' ';
 
-    if (value['logging.googleapis.com/operation']) {
-      oline += formatOperation(value['logging.googleapis.com/operation']);
+    if (value[LOGGING_OPERATION]) {
+      oline += formatOperation(value[LOGGING_OPERATION]);
     }
 
-    const isErr = value.type && errRegExp.test(value.type);
-    if (value.message && (!isErr || value.stack)) {
+    if (value.message) {
       oline += chalk.cyan(value.message);
     }
 
     oline += eol;
-
-    if (isErr && (value.stack || value.message)) {
-      oline += '    ' + withSpaces(value.stack || value.message, eol) + eol;
-      oline += eol;
-      let { stack, type, ...rest } = value;
-      value = rest;
-    }
 
     if (value.httpRequest) {
       oline += formatHttpRequest(value.httpRequest, eol) + eol;

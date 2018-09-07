@@ -1,6 +1,0 @@
-examples/
-*.js.map
-*.ts
-!*.d.ts
-declarations.d.ts
-tsconfig.json

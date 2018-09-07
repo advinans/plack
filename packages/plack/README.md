@@ -45,29 +45,37 @@ $ node my-program.js | plack
 
 ## Usage
 
+### Basic usage
+
 ```typescript
 import plack from '@advinans/plack';
 
-const log = plack({
-  // By adding this, Stackdriver error reporting is improved.
-  serviceContext: {
-    service: 'plack-example',
-    version: '1.0.0',
-  },
-});
+// Accepts standard pino configuration, but you shouldn't have to configure
+// it at all
+const log = plack();
 
 log.info('hello world');
 log.alert('red alert!');
+```
+
+### Errors
+
+```typescript
+import { VError } from 'verror';
+
+// You can pass an explicit service context, but a default one is inferred
+// based on your package.json (`.name`) and environment if not provided.
+// We read `process.env.VERSION` from the environment, because we don't bump
+// package.json versions (for Docker layering purposes)
+const log = plack();
 
 // The stack trace gets logged so that the error gets picked up by Stackdriver
-// error reporting. Configure the logger with a service context (see above)
-// to have correct source information -- services running in Kubernetes will
-// otherwise simply be `gke_instances`.
+// error reporting. It uses `VError.fullstack` to report a 'full" stack trace.
 log.error(new Error('an error'));
 
 // To provide additional context about an error that you wish to be reported
-// as an error in Stackdriver, either pass the error as `err` on the object,
-// or in place of message.
+// as an error in Stackdriver, send an additional object. Enumerable error
+// properties are also reported.
 log.error(
   { context: { httpRequest: { method: 'GET', responseStatusCode: 500 } } },
   new Error('another error'),
@@ -79,10 +87,37 @@ log.error(
 class MyError extends Error {
   constructor(message?: string) {
     super(message);
+
     this.name = this.constructor.name;
   }
 }
+
+log.error(new MyError('My little error'));
+log.error(
+  new VError({ cause: new MyError('root cause'), name: 'RequestError' }),
+  'The request failed',
+);
 ```
+
+### Operations
+
+Stackdriver support logging long-running operations. You can explicitly log
+such objects under the `LOGGING_OPERATION` key, or you can create a child logger:
+
+```typescript
+const log = plack();
+
+const op1 = log.operation({
+  id: 'f7e91b46-48a5-4ac3-ba5d-c03576fc579c',
+  producer: '6ef00c3b-d2d9-44c5-ae4d-2e90d1f8c7dc',
+});
+
+op1.log({ first: true }, 'Operation starts');
+op1.log('Operation runs');
+op1.log({ last: true }, 'Operation ends');
+```
+
+Note: This uses pino's child bindings to create the initial operation key. Such bindings cannot be removed, so when logging `first` or `last` the logging key is repeated in the JSON output. This may cause problems for some JSON parsers but Stackdriver handles it gracefully (last value wins).
 
 ## What gets picked up
 
