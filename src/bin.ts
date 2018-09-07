@@ -78,19 +78,11 @@ function pretty() {
       oline += formatOperation(value['logging.googleapis.com/operation']);
     }
 
-    const isErr = value.type && errRegExp.test(value.type);
-    if (value.message && (!isErr || value.stack)) {
+    if (value.message) {
       oline += chalk.cyan(value.message);
     }
 
     oline += eol;
-
-    if (isErr && (value.stack || value.message)) {
-      oline += '    ' + withSpaces(value.stack || value.message, eol) + eol;
-      oline += eol;
-      let { stack, type, ...rest } = value;
-      value = rest;
-    }
 
     if (value.httpRequest) {
       oline += formatHttpRequest(value.httpRequest, eol) + eol;
