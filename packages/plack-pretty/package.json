@@ -1,0 +1,29 @@
+{
+  "name": "@advinans/plack-pretty",
+  "version": "4.2.1",
+  "private": false,
+  "description": "Pretty print utility for Plack",
+  "bin": {
+    "plack": "build/plack.js"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prepare": "tsc"
+  },
+  "author": "Victor Andrée <victor.andree@advinans.se>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/advinans/plack.git"
+  },
+  "dependencies": {
+    "@advinans/plack": "^4.2.1",
+    "chalk": "^2.4.1",
+    "fast-json-parse": "^1.0.3",
+    "moment": "^2.22.2",
+    "split2": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/split2": "^2.1.6",
+    "typescript": "^3.0.3"
+  }
+}

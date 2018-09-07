@@ -8,7 +8,7 @@ import {
   LogEntryHttpRequest,
   LogEntryOperation,
   LOGGING_OPERATION,
-} from './constants';
+} from '@advinans/plack';
 
 const colors: any = {
   DEFAULT: chalk.white,
