@@ -1,6 +1,6 @@
 {
   "name": "@advinans/plack-pretty",
-  "version": "4.2.1",
+  "version": "5.0.0",
   "private": false,
   "description": "Pretty print utility for Plack",
   "bin": {
@@ -16,7 +16,7 @@
     "url": "git+https://github.com/advinans/plack.git"
   },
   "dependencies": {
-    "@advinans/plack": "^4.2.1",
+    "@advinans/plack": "^5.0.0",
     "chalk": "^2.4.1",
     "fast-json-parse": "^1.0.3",
     "moment": "^2.22.2",
