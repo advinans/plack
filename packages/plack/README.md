@@ -101,15 +101,19 @@ log.error(
 
 ### Operations
 
-Stackdriver support logging long-running operations. You can explicitly log
-such objects under the `LOGGING_OPERATION` key, or you can create a child logger:
+Stackdriver support logging long-running operations ([LogEntryOperation](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#LogEntryOperation)). You can explicitly log such objects under the `LOGGING_OPERATION` key, or you can create a child logger:
 
 ```typescript
 const log = plack();
 
 const op1 = log.operation({
-  id: 'f7e91b46-48a5-4ac3-ba5d-c03576fc579c',
-  producer: '6ef00c3b-d2d9-44c5-ae4d-2e90d1f8c7dc',
+  // An arbitrary producer identifier. The combination of id and
+  // producer must be globally unique.
+  producer: 'advinans/service-company/my-producer',
+  
+  // An arbitrary operation identifier. Log entries with the same
+  // identifier are assumed to be part of the same operation.
+  id: 'jobs-processor-8eb41c3d-3998-4360-9ea7-0132642e2d38',
 });
 
 op1.log({ first: true }, 'Operation starts');
