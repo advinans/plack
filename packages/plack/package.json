@@ -18,17 +18,17 @@
     "url": "git+https://github.com/advinans/plack.git"
   },
   "dependencies": {
-    "@types/pino": "^5.20.0",
-    "pino": "^5.5.0",
+    "@types/pino": "^5.8.1",
+    "pino": "^5.8.0",
     "verror": "^1.10.0"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.1",
+    "@types/jest": "^23.3.9",
     "@types/verror": "^1.10.3",
-    "jest": "^23.5.0",
-    "prettier": "^1.14.2",
+    "jest": "^23.6.0",
+    "prettier": "^1.14.3",
     "source-map-support": "^0.5.9",
-    "ts-jest": "^23.1.4",
-    "typescript": "^3.0.3"
+    "ts-jest": "^23.10.4",
+    "typescript": "^3.1.6"
   }
 }
