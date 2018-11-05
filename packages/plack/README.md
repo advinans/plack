@@ -45,6 +45,8 @@ $ node my-program.js | plack
 
 ## Usage
 
+Unless you provide a `level` to the plack constructor, it will respect `process.env.LOG_LEVEL`. This allows you to configure the log level through the environment, by default.
+
 ### Basic usage
 
 ```typescript
@@ -110,7 +112,7 @@ const op1 = log.operation({
   // An arbitrary producer identifier. The combination of id and
   // producer must be globally unique.
   producer: 'advinans/service-company/my-producer',
-  
+
   // An arbitrary operation identifier. Log entries with the same
   // identifier are assumed to be part of the same operation.
   id: 'jobs-processor-8eb41c3d-3998-4360-9ea7-0132642e2d38',

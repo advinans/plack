@@ -100,6 +100,7 @@ export function plack(
         alert: 70,
         emergency: 80,
       },
+      level: process.env.LOG_LEVEL || 'info',
       ...options,
     } as any,
     destination as any,

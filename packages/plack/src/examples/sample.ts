@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import plack from '../';
 
 const log = plack();
-log.level = 'trace';
+// log.level = 'trace';
 
 log.info('server up and listening on port 8080');
 log.info(
@@ -58,6 +58,8 @@ log.info(
   },
   'end of operation',
 );
+
+log.trace('Log level configurable through `LOG_LEVEL`');
 
 // string index signature works
 const s: string = 'info';
