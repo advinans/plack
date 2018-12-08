@@ -61,9 +61,9 @@ function pretty() {
   const pipe = stream.pipe;
   const eol = '\n';
 
-  stream.pipe = function(dest, opts) {
+  stream.pipe = function(dest: any, opts: any) {
     return pipe.call(stream, dest, opts);
-  };
+  } as any;
 
   return stream;
 
