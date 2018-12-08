@@ -1,6 +1,6 @@
 {
   "name": "@advinans/plack-pretty",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -19,7 +19,7 @@
     "url": "git+https://github.com/advinans/plack.git"
   },
   "dependencies": {
-    "@advinans/plack": "^5.1.0",
+    "@advinans/plack": "^5.2.0",
     "chalk": "^2.4.1",
     "fast-json-parse": "^1.0.3",
     "moment": "^2.22.2",
